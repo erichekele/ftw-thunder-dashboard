@@ -341,6 +341,75 @@
   tbody tr:nth-child(even){ background:#FBFAF6; }
   tbody tr:hover{ background:#F1ECDD; }
 
+  .record-summary{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .record-badge{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 18px;
+    text-align:center;
+  }
+  .record-badge .rb-label{
+    font-family:'Oswald',sans-serif;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .record-badge .rb-val{
+    font-family:'Roboto Mono',monospace;
+    font-weight:700;
+    font-size:20px;
+    color:var(--green-deep);
+  }
+  .games-table-wrap{
+    overflow-x:auto;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--paper-card);
+    margin-bottom:6px;
+  }
+  table.games-table{
+    border-collapse:collapse;
+    width:100%;
+    font-size:13.5px;
+  }
+  table.games-table th{
+    background:var(--green-deep);
+    color:#EFE9D8;
+    font-family:'Oswald',sans-serif;
+    font-weight:500;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    font-size:11px;
+    padding:8px 12px;
+    text-align:left;
+    white-space:nowrap;
+  }
+  table.games-table td{
+    padding:7px 12px;
+    border-top:1px solid var(--line);
+    font-family:'Roboto Mono',monospace;
+    font-size:13px;
+  }
+  table.games-table tr:nth-child(even){ background:#FBFAF6; }
+  .result-pill{
+    display:inline-block;
+    min-width:20px;
+    text-align:center;
+    border-radius:5px;
+    padding:1px 7px;
+    font-weight:700;
+    font-size:12px;
+  }
+  .result-pill.W{ background:var(--good-bg); color:var(--good); }
+  .result-pill.L{ background:var(--bad-bg); color:var(--bad); }
+
   .trend-grid{
     display:grid;
     grid-template-columns:repeat(2, 1fr);
@@ -445,6 +514,9 @@
         <input type="search" id="playerSearch" placeholder="Search name…">
       </div>
     </div>
+
+    <div class="section-label"><span class="bolt">⚡</span><h2>Games &amp; Record</h2><div class="line"></div></div>
+    <div id="gamesSection"></div>
 
     <div class="section-label"><span class="bolt">⚡</span><h2>Team Hitting</h2><div class="line"></div></div>
     <div class="cardgrid" id="tournHittingCards"></div>
@@ -736,9 +808,54 @@ function getCurrentTournament(){
   return getEraTournaments().find(t=>t.id===id);
 }
 
+function renderGamesSection(t){
+  const container = document.getElementById('gamesSection');
+  const games = t.games || [];
+
+  if(games.length === 0){
+    container.innerHTML = `<p style="color:var(--ink-soft);font-size:14px;margin:0 0 20px;">No games logged for this tournament yet.</p>`;
+    return;
+  }
+
+  const badges = `
+    <div class="record-summary">
+      <div class="record-badge">
+        <div class="rb-label">This Tournament</div>
+        <div class="rb-val">${t.tournament_record || '—'}</div>
+      </div>
+      <div class="record-badge">
+        <div class="rb-label">Season Record</div>
+        <div class="rb-val">${t.season_record_after || '—'}</div>
+      </div>
+    </div>`;
+
+  const rows = games.map(g=>{
+    const scoreText = (g.ftw_score!==null && g.opp_score!==null)
+      ? `${fmtValue(g.ftw_score,'int')} - ${fmtValue(g.opp_score,'int')}`
+      : '—';
+    return `<tr>
+      <td>${formatDate(g.date)}</td>
+      <td style="font-family:'Inter',sans-serif;">${g.opponent}</td>
+      <td>${g.location || '—'}</td>
+      <td>${scoreText}</td>
+      <td><span class="result-pill ${g.result}">${g.result}</span></td>
+      <td>${g.record || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = badges + `
+    <div class="games-table-wrap">
+      <table class="games-table">
+        <thead><tr><th>Date</th><th>Opponent</th><th>Location</th><th>Score</th><th>W/L</th><th>Record</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
 function renderTournamentView(){
   const t = getCurrentTournament();
   if(!t) return;
+  renderGamesSection(t);
   renderStatCards(document.getElementById('tournHittingCards'), t.team, HITTING_KEYS);
   renderStatCards(document.getElementById('tournPitchingCards'), t.team, PITCHING_KEYS);
   renderTournamentTable(t.players, document.getElementById('playerSearch').value);
