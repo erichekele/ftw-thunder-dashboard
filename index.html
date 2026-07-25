@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FTW Thunder — Stats Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --green-deep:   #0F2F24;
+    --green-mid:    #16382A;
+    --steel:        #BFBFBF;
+    --steel-bright: #D9D9D9;
+    --ink-black:    #000000;
+    --paper:        #F5F5F5;
+    --paper-card:   #FFFFFF;
+    --ink:          #12201A;
+    --ink-soft:     #4B5A53;
+    --line:         #DCD6C8;
+    --good:         #2E9E4C;
+    --good-bg:      #E4F5E8;
+    --warn:         #C79A1E;
+    --warn-bg:      #FBF1D9;
+    --bad:          #C0392B;
+    --bad-bg:       #FBE6E3;
+    --flat:         #9AA39D;
+    --flat-bg:      #EEF0EC;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  h1,h2,h3,.display{
+    font-family:'Oswald',Arial,sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+  }
+
+  .mono{ font-family:'Roboto Mono',monospace; }
+
+  /* ---------- HEADER ---------- */
+  header.hero{
+    background:
+      radial-gradient(ellipse at top left, rgba(191,191,191,0.10), transparent 55%),
+      linear-gradient(180deg, var(--green-deep) 0%, var(--green-mid) 100%);
+    color:#F4F1E6;
+    padding:28px 24px 0;
+  }
+  .hero-inner{
+    max-width:1180px;
+    margin:0 auto;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    padding-bottom:18px;
+    border-bottom:3px solid var(--steel);
+  }
+  .hero-brand{
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  .hero-logo-t{
+    height:56px;
+    width:auto;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+  }
+  .hero-right{
+    display:flex;
+    align-items:center;
+    gap:18px;
+  }
+  .hero-logo-character{
+    height:76px;
+    width:auto;
+    filter:drop-shadow(0 2px 5px rgba(0,0,0,0.35));
+  }
+  .hero-title{
+    font-size:13px;
+    letter-spacing:0.25em;
+    color:var(--steel-bright);
+    margin:0 0 6px;
+    font-weight:600;
+  }
+  .hero-name{
+    font-size:clamp(28px,4vw,44px);
+    margin:0;
+    line-height:1;
+    color:#fff;
+  }
+  .hero-sub{
+    font-family:'Inter',sans-serif;
+    text-transform:none;
+    letter-spacing:0;
+    font-size:14px;
+    color:#CFE0D6;
+    margin-top:6px;
+  }
+  .era-select{
+    margin-top:8px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:6px 12px;
+    border-radius:6px;
+    border:1.5px solid rgba(191,191,191,0.5);
+    background:rgba(255,255,255,0.06);
+    color:#EDEFEC;
+    cursor:pointer;
+  }
+  .era-select:focus{
+    outline:none;
+    border-color:var(--steel-bright);
+  }
+  .era-select option{
+    color:#12201A;
+    background:#fff;
+  }
+  .hero-record{
+    display:flex;
+    gap:26px;
+    font-family:'Roboto Mono',monospace;
+  }
+  .hero-record div{ text-align:right; }
+  .hero-record .rlabel{
+    font-size:10px;
+    letter-spacing:0.15em;
+    color:var(--steel-bright);
+    text-transform:uppercase;
+  }
+  .hero-record .rval{
+    font-size:22px;
+    font-weight:700;
+    color:#fff;
+  }
+
+  /* ---------- NAV TABS ---------- */
+  nav.tabs{
+    max-width:1180px;
+    margin:0 auto;
+    display:flex;
+    gap:2px;
+    overflow-x:auto;
+  }
+  nav.tabs button{
+    appearance:none;
+    border:none;
+    background:transparent;
+    color:#BFC9C2;
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    font-size:13px;
+    font-weight:500;
+    padding:14px 18px 12px;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    white-space:nowrap;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  nav.tabs button:hover{ color:#fff; }
+  nav.tabs button.active{
+    color:var(--steel-bright);
+    border-bottom-color:var(--steel);
+  }
+
+  /* ---------- MAIN ---------- */
+  main{
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px 24px 80px;
+  }
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  .toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-bottom:22px;
+  }
+  .select-wrap label{
+    display:block;
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+    font-weight:600;
+  }
+  select, input[type="search"]{
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    padding:9px 14px;
+    border-radius:6px;
+    border:1.5px solid var(--line);
+    background:var(--paper-card);
+    color:var(--ink);
+  }
+  select{ min-width:280px; }
+  select:focus, input:focus{
+    outline:none;
+    border-color:var(--ink-black);
+    box-shadow:0 0 0 3px rgba(0,0,0,0.12);
+  }
+
+  .section-label{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:30px 0 14px;
+  }
+  .section-label .bolt{ color:var(--ink-black); font-size:18px; }
+  .section-label h2{
+    font-size:16px;
+    margin:0;
+    color:var(--green-deep);
+  }
+  .section-label .line{
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  /* ---------- STAT CARD GRID ---------- */
+  .cardgrid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:12px;
+  }
+  @media(max-width:820px){ .cardgrid{ grid-template-columns:repeat(2,1fr); } }
+
+  .stat-group-label{
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .stat-group{ margin-bottom:8px; }
+
+  .statcard{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 10px 12px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .statcard .stitle{
+    font-family:'Oswald',sans-serif;
+    font-size:12px;
+    letter-spacing:0.04em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+  }
+  .statcard .sval{
+    font-family:'Roboto Mono',monospace;
+    font-weight:700;
+    font-size:20px;
+    padding:5px 14px;
+    border-radius:20px;
+    border:1.5px solid transparent;
+  }
+  .statcard .sval.green{ background:var(--good-bg); color:var(--good); border-color:rgba(46,158,76,0.35); }
+  .statcard .sval.yellow{ background:var(--warn-bg); color:var(--warn); border-color:rgba(199,154,30,0.35); }
+  .statcard .sval.red{ background:var(--bad-bg); color:var(--bad); border-color:rgba(192,57,43,0.35); }
+  .statcard .sval.gray{ background:var(--flat-bg); color:var(--flat); border-color:rgba(154,163,157,0.35); }
+  .statcard .sgoal{
+    font-size:10.5px;
+    color:var(--ink-soft);
+    line-height:1.3;
+  }
+  .statcard .strend{
+    font-size:11px;
+    font-weight:700;
+  }
+  .strend.green{ color:var(--good); }
+  .strend.red{ color:var(--bad); }
+  .strend.gray{ color:var(--flat); }
+
+  /* ---------- TABLE ---------- */
+  .table-wrap{
+    overflow-x:auto;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--paper-card);
+  }
+  table{
+    border-collapse:collapse;
+    width:100%;
+    font-size:13.5px;
+  }
+  thead th{
+    position:sticky; top:0;
+    background:var(--green-deep);
+    color:#EFE9D8;
+    font-family:'Oswald',sans-serif;
+    font-weight:500;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    font-size:11.5px;
+    padding:10px 12px;
+    text-align:center;
+    cursor:pointer;
+    white-space:nowrap;
+    user-select:none;
+  }
+  thead th:first-child{ text-align:left; }
+  thead th.sorted::after{ content:" \25BE"; color:var(--steel-bright); }
+  thead th.sorted-asc::after{ content:" \25B4"; color:var(--steel-bright); }
+  tbody td{
+    padding:8px 12px;
+    text-align:center;
+    border-top:1px solid var(--line);
+    font-family:'Roboto Mono',monospace;
+    font-size:13px;
+  }
+  tbody td:first-child{
+    text-align:left;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    color:var(--ink);
+  }
+  tbody tr:nth-child(even){ background:#FBFAF6; }
+  tbody tr:hover{ background:#F1ECDD; }
+
+  .trend-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:16px;
+  }
+  @media(max-width:760px){ .trend-grid{ grid-template-columns:1fr; } }
+
+  .trend-card{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px 10px;
+  }
+  .trend-card-title{
+    font-family:'Oswald',sans-serif;
+    font-size:13px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--green-deep);
+    margin-bottom:6px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  .trend-card-title .latest{
+    font-family:'Roboto Mono',monospace;
+    font-size:15px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .trend-card-canvas-wrap{
+    position:relative;
+    height:220px;
+  }
+
+  .empty-state{
+    padding:60px 20px;
+    text-align:center;
+    color:var(--ink-soft);
+    border:1.5px dashed var(--line);
+    border-radius:12px;
+    background:var(--paper-card);
+  }
+  .empty-state .bolt{ font-size:26px; color:var(--ink-black); display:block; margin-bottom:10px; }
+  .empty-state h3{ color:var(--green-deep); margin:0 0 8px; font-size:18px; }
+  .empty-state p{ max-width:480px; margin:0 auto; font-size:14px; line-height:1.5; }
+
+  footer{
+    text-align:center;
+    padding:24px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-brand">
+      <img class="hero-logo-t" src="assets/thunder_t_logo.png" alt="Thunder T logo">
+      <div>
+        <div class="hero-title">Fort Worth</div>
+        <h1 class="hero-name">Thunder <span style="color:var(--steel-bright)">11U</span></h1>
+        <select id="eraSelect" class="era-select"></select>
+      </div>
+    </div>
+    <div class="hero-right">
+      <img class="hero-logo-character" src="assets/thunder_character_logo.png" alt="Thunder mascot logo">
+      <div class="hero-record">
+        <div>
+          <div class="rlabel">Tournaments Logged</div>
+          <div class="rval" id="tournCount">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button data-view="tournament" class="active">⚡ Tournament</button>
+    <button data-view="season">Season</button>
+    <button data-view="trends">Trends</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============ TOURNAMENT VIEW ============ -->
+  <section id="tournament" class="view active">
+    <div id="tournamentEmpty" class="empty-state" style="display:none;">
+      <span class="bolt">⚡</span>
+      <h3>No data yet for this season</h3>
+      <p>Once tournament CSVs are added for this team/season, they'll show up here.</p>
+    </div>
+    <div id="tournamentContent">
+    <div class="toolbar">
+      <div class="select-wrap">
+        <label for="tournSelect">Select Tournament</label>
+        <select id="tournSelect"></select>
+      </div>
+      <div class="select-wrap" style="min-width:220px;">
+        <label for="playerSearch">Find a Player</label>
+        <input type="search" id="playerSearch" placeholder="Search name…">
+      </div>
+    </div>
+
+    <div class="section-label"><span class="bolt">⚡</span><h2>Team Hitting</h2><div class="line"></div></div>
+    <div class="cardgrid" id="tournHittingCards"></div>
+
+    <div class="section-label"><span class="bolt">⚡</span><h2>Team Pitching &amp; Fielding</h2><div class="line"></div></div>
+    <div class="cardgrid" id="tournPitchingCards"></div>
+
+    <div class="section-label"><span class="bolt">⚡</span><h2>Player Stats</h2><div class="line"></div></div>
+    <div class="table-wrap">
+      <table id="tournTable">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    </div>
+  </section>
+
+  <!-- ============ SEASON VIEW ============ -->
+  <section id="season" class="view">
+    <div id="seasonEmpty" class="empty-state" style="display:none;">
+      <span class="bolt">⚡</span>
+      <h3>Season stats coming soon</h3>
+      <p>Once weekly Season CSV snapshots are added, this tab will show cumulative season totals with the same hitting &amp; pitching dashboards, plus week-over-week trend arrows.</p>
+    </div>
+    <div id="seasonContent">
+      <div class="toolbar">
+        <div class="select-wrap">
+          <label for="seasonSelect">Season Snapshot (as of)</label>
+          <select id="seasonSelect"></select>
+        </div>
+        <div class="select-wrap" style="min-width:220px;">
+          <label for="seasonPlayerSearch">Find a Player</label>
+          <input type="search" id="seasonPlayerSearch" placeholder="Search name…">
+        </div>
+      </div>
+
+      <div class="section-label"><span class="bolt">⚡</span><h2>Team Hitting <span id="seasonHittingTrendNote" style="text-transform:none;font-weight:400;color:var(--ink-soft);font-size:12px;"></span></h2><div class="line"></div></div>
+      <div class="cardgrid" id="seasonHittingCards"></div>
+
+      <div class="section-label"><span class="bolt">⚡</span><h2>Team Pitching &amp; Fielding</h2><div class="line"></div></div>
+      <div class="cardgrid" id="seasonPitchingCards"></div>
+
+      <div class="section-label"><span class="bolt">⚡</span><h2>Player Stats — Season to Date</h2><div class="line"></div></div>
+      <div class="table-wrap">
+        <table id="seasonTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRENDS VIEW ============ -->
+  <section id="trends" class="view">
+    <div id="trendsEmpty" class="empty-state" style="display:none;">
+      <span class="bolt">⚡</span>
+      <h3>Trend graphs coming soon</h3>
+      <p>As more weekly Season snapshots are added, this tab will chart the team's progress across the whole season, metric by metric.</p>
+    </div>
+    <div id="trendsContent">
+      <div class="toolbar">
+        <div class="select-wrap">
+          <label for="trendGroupSelect">Metric Group</label>
+          <select id="trendGroupSelect">
+            <option value="hitting">Hitting</option>
+            <option value="pitching">Pitching &amp; Fielding</option>
+          </select>
+        </div>
+      </div>
+      <div class="trend-grid" id="trendGrid"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>FTW Thunder Stats Dashboard · Built for the team</footer>
+
+<script>
+/* =========================================================
+   METRIC CONFIG — mirrors the goals/stretch/direction from
+   the original notebook's metric_config dict.
+   ========================================================= */
+const METRIC_CONFIG = {
+  'QAB%':    { goal: 50,    stretch: 65,    higher: true,  fmt: 'pct', label: 'QAB %',        group:'Process' },
+  'C%':      { goal: 50,    stretch: 65,    higher: true,  fmt: 'pct', label: 'Contact %',    group:'Process' },
+  'HHB%':    { goal: 20,    stretch: 25,    higher: true,  fmt: 'pct', label: 'Hard Hit %',   group:'Outcome' },
+  'BA/RISP': { goal: 0.300, stretch: 0.400, higher: true,  fmt: 'avg', label: 'BA / RISP',    group:'Outcome' },
+  'K-L%':    { goal: 15,    stretch: 10,    higher: false, fmt: 'pct', label: 'K-Looking %',  group:'Outcome' },
+  'S%':      { goal: 55,    stretch: 65,    higher: true,  fmt: 'pct', label: 'Strike %',     group:'Process' },
+  'FPS%':    { goal: 55,    stretch: 65,    higher: true,  fmt: 'pct', label: 'FPS %',         group:'Process' },
+  'FPSO%':   { goal: 50,    stretch: 65,    higher: true,  fmt: 'pct', label: 'FPS \u2192 Out', group:'Outcome' },
+  'LOO%':    { goal: 50,    stretch: 65,    higher: true,  fmt: 'pct', label: 'LOO %',         group:'Outcome' },
+  'BBS%':    { goal: 50,    stretch: 40,    higher: false, fmt: 'pct', label: 'BB \u2192 Score %', group:'Outcome' },
+};
+
+const HITTING_KEYS  = ['QAB%','C%','HHB%','BA/RISP','K-L%'];
+const PITCHING_KEYS = ['S%','FPS%','FPSO%','LOO%','BBS%'];
+
+const TABLE_COLUMNS = [
+  { key:'name',    label:'Player',   fmt:'text' },
+  { key:'AB',      label:'AB',       fmt:'int'  },
+  { key:'AVG',     label:'AVG',      fmt:'avg'  },
+  { key:'OBP',     label:'OBP',      fmt:'avg'  },
+  { key:'QAB%',    label:'QAB%',     fmt:'pct'  },
+  { key:'C%',      label:'CT%',      fmt:'pct'  },
+  { key:'HHB%',    label:'HHB%',     fmt:'pct'  },
+  { key:'BA/RISP', label:'BA/RISP',  fmt:'avg'  },
+  { key:'K-L%',    label:'K-L%',     fmt:'pct'  },
+  { key:'IP',      label:'IP',       fmt:'ip'   },
+  { key:'S%',      label:'S%',       fmt:'pct'  },
+  { key:'FPS%',    label:'FPS%',     fmt:'pct'  },
+  { key:'FPSO%',   label:'FPSO%',    fmt:'pct'  },
+  { key:'LOO%',    label:'LOO%',     fmt:'pct'  },
+  { key:'BBS%',    label:'BBS%',     fmt:'pct'  },
+  { key:'TC',      label:'TC',       fmt:'int'  },
+  { key:'FPCT',    label:'FLD%',     fmt:'avg'  },
+];
+
+let DATA = { tournaments: [] };
+let SEASON = { snapshots: [] };
+let currentSort = { key:'name', dir:1 };
+let seasonSort = { key:'name', dir:1 };
+let trendCharts = {};
+let currentEra = null;
+
+const NEGATIVE_METRICS = ['K-L%','BBS%']; // lower is better
+
+function getEraList(){
+  return (DATA.eras && DATA.eras.length) ? DATA.eras : (SEASON.eras || []);
+}
+
+function eraHasData(era){
+  const t = DATA.tournaments.some(t=>t.era===era);
+  const s = SEASON.snapshots.some(s=>s.era===era);
+  return t || s;
+}
+
+function pickDefaultEra(){
+  const eras = getEraList();
+  for(let i=eras.length-1; i>=0; i--){
+    if(eraHasData(eras[i])) return eras[i];
+  }
+  return eras[0];
+}
+
+function getEraTournaments(){
+  return DATA.tournaments.filter(t=>t.era===currentEra);
+}
+
+function getEraSnapshots(){
+  return SEASON.snapshots.filter(s=>s.era===currentEra);
+}
+
+function initEraSelector(){
+  const select = document.getElementById('eraSelect');
+  const eras = getEraList();
+  select.innerHTML = eras.map(era=>{
+    const has = eraHasData(era);
+    return `<option value="${era}">${era}${has ? '' : ' — no data yet'}</option>`;
+  }).join('');
+  currentEra = pickDefaultEra();
+  select.value = currentEra;
+  select.addEventListener('change', ()=>{
+    currentEra = select.value;
+    refreshAllViews();
+  });
+}
+
+function refreshAllViews(){
+  initTournamentTab();
+  initSeason();
+  initTrends();
+}
+
+function trendArrow(current, previous, key){
+  if(current===null || current===undefined || previous===null || previous===undefined ||
+     Number.isNaN(current) || Number.isNaN(previous)) return { text:'', color:'gray' };
+  const delta = current - previous;
+  const threshold = 0.001;
+  let arrow = '→';
+  if(delta > threshold) arrow = '▲';
+  else if(delta < -threshold) arrow = '▼';
+
+  const adjDelta = NEGATIVE_METRICS.includes(key) ? -delta : delta;
+  let color = 'gray';
+  if(adjDelta > threshold) color = 'green';
+  else if(adjDelta < -threshold) color = 'red';
+
+  const cfg = METRIC_CONFIG[key];
+  const deltaText = cfg && cfg.fmt==='avg'
+    ? (delta>=0?'+':'') + delta.toFixed(3)
+    : (delta>=0?'+':'') + Math.round(delta);
+
+  return { text: `${arrow} (${deltaText})`, color };
+}
+
+function fmtValue(v, fmt){
+  if(v===null || v===undefined || Number.isNaN(v)) return '—';
+  if(fmt==='pct') return Math.round(v) + '%';
+  if(fmt==='avg') return v.toFixed(3).replace(/^0\./,'.');
+  if(fmt==='int') return Math.round(v).toString();
+  if(fmt==='ip')  return v.toFixed(1);
+  return v;
+}
+
+function cardColor(value, cfg){
+  if(value===null || value===undefined || Number.isNaN(value)) return 'gray';
+  if(cfg.higher){
+    if(value >= cfg.stretch) return 'green';
+    if(value >= cfg.goal) return 'yellow';
+    return 'red';
+  } else {
+    if(value <= cfg.stretch) return 'green';
+    if(value <= cfg.goal) return 'yellow';
+    return 'red';
+  }
+}
+
+function goalText(cfg){
+  if(cfg.fmt==='pct') return `Goal: ${cfg.goal}%<br>Stretch: ${cfg.stretch}%`;
+  if(cfg.fmt==='avg') return `Goal: ${cfg.goal.toFixed(3)}<br>Stretch: ${cfg.stretch.toFixed(3)}`;
+  return '';
+}
+
+function renderStatCards(container, team, keys, trends){
+  container.innerHTML = '';
+  keys.forEach(key=>{
+    const cfg = METRIC_CONFIG[key];
+    const value = team ? team[key] : null;
+    const color = cardColor(value, cfg);
+    const trend = trends ? trends[key] : null;
+    const card = document.createElement('div');
+    card.className = 'statcard';
+    card.innerHTML = `
+      <div class="stitle">${cfg.label}</div>
+      <div class="sval ${color}">${fmtValue(value, cfg.fmt)}</div>
+      ${trend && trend.text ? `<div class="strend ${trend.color}">${trend.text}</div>` : ''}
+      <div class="sgoal">${goalText(cfg)}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderTournamentTable(players, searchTerm){
+  const thead = document.querySelector('#tournTable thead');
+  const tbody = document.querySelector('#tournTable tbody');
+
+  thead.innerHTML = '<tr>' + TABLE_COLUMNS.map(c=>{
+    let cls = '';
+    if(c.key===currentSort.key) cls = currentSort.dir===1 ? 'sorted' : 'sorted-asc';
+    return `<th data-key="${c.key}" class="${cls}">${c.label}</th>`;
+  }).join('') + '</tr>';
+
+  let rows = players.slice();
+  if(searchTerm){
+    const t = searchTerm.toLowerCase();
+    rows = rows.filter(p=>p.name.toLowerCase().includes(t));
+  }
+
+  rows.sort((a,b)=>{
+    let av = a[currentSort.key], bv = b[currentSort.key];
+    if(currentSort.key==='name'){
+      return currentSort.dir * String(av).localeCompare(String(bv));
+    }
+    av = (av===null||av===undefined) ? -Infinity : av;
+    bv = (bv===null||bv===undefined) ? -Infinity : bv;
+    return currentSort.dir * (av - bv);
+  });
+
+  tbody.innerHTML = rows.map(p=>{
+    return '<tr>' + TABLE_COLUMNS.map(c=>{
+      if(c.key==='name') return `<td>${p.name}</td>`;
+      return `<td>${fmtValue(p[c.key], c.fmt)}</td>`;
+    }).join('') + '</tr>';
+  }).join('');
+
+  thead.querySelectorAll('th').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.key;
+      if(currentSort.key===key){ currentSort.dir *= -1; }
+      else { currentSort = { key, dir: key==='name' ? 1 : -1 }; }
+      renderTournamentTable(getCurrentTournament().players, document.getElementById('playerSearch').value);
+    });
+  });
+}
+
+function getCurrentTournament(){
+  const id = document.getElementById('tournSelect').value;
+  return getEraTournaments().find(t=>t.id===id);
+}
+
+function renderTournamentView(){
+  const t = getCurrentTournament();
+  if(!t) return;
+  renderStatCards(document.getElementById('tournHittingCards'), t.team, HITTING_KEYS);
+  renderStatCards(document.getElementById('tournPitchingCards'), t.team, PITCHING_KEYS);
+  renderTournamentTable(t.players, document.getElementById('playerSearch').value);
+}
+
+function formatDate(iso){
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+/* =========================================================
+   SEASON VIEW
+   ========================================================= */
+function getCurrentSeasonSnapshot(){
+  const id = document.getElementById('seasonSelect').value;
+  return getEraSnapshots().find(s=>s.date===id);
+}
+
+function getPreviousSeasonSnapshot(currentDate){
+  const sorted = getEraSnapshots().sort((a,b)=>a.date.localeCompare(b.date));
+  const idx = sorted.findIndex(s=>s.date===currentDate);
+  return idx > 0 ? sorted[idx-1] : null;
+}
+
+function renderSeasonTable(players, searchTerm){
+  const thead = document.querySelector('#seasonTable thead');
+  const tbody = document.querySelector('#seasonTable tbody');
+
+  thead.innerHTML = '<tr>' + TABLE_COLUMNS.map(c=>{
+    let cls = '';
+    if(c.key===seasonSort.key) cls = seasonSort.dir===1 ? 'sorted' : 'sorted-asc';
+    return `<th data-key="${c.key}" class="${cls}">${c.label}</th>`;
+  }).join('') + '</tr>';
+
+  let rows = players.slice();
+  if(searchTerm){
+    const t = searchTerm.toLowerCase();
+    rows = rows.filter(p=>p.name.toLowerCase().includes(t));
+  }
+
+  rows.sort((a,b)=>{
+    let av = a[seasonSort.key], bv = b[seasonSort.key];
+    if(seasonSort.key==='name'){
+      return seasonSort.dir * String(av).localeCompare(String(bv));
+    }
+    av = (av===null||av===undefined) ? -Infinity : av;
+    bv = (bv===null||bv===undefined) ? -Infinity : bv;
+    return seasonSort.dir * (av - bv);
+  });
+
+  tbody.innerHTML = rows.map(p=>{
+    return '<tr>' + TABLE_COLUMNS.map(c=>{
+      if(c.key==='name') return `<td>${p.name}</td>`;
+      return `<td>${fmtValue(p[c.key], c.fmt)}</td>`;
+    }).join('') + '</tr>';
+  }).join('');
+
+  thead.querySelectorAll('th').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.key;
+      if(seasonSort.key===key){ seasonSort.dir *= -1; }
+      else { seasonSort = { key, dir: key==='name' ? 1 : -1 }; }
+      renderSeasonTable(getCurrentSeasonSnapshot().players, document.getElementById('seasonPlayerSearch').value);
+    });
+  });
+}
+
+function renderSeasonView(){
+  const snap = getCurrentSeasonSnapshot();
+  if(!snap) return;
+  const prev = getPreviousSeasonSnapshot(snap.date);
+
+  const hittingTrends = {};
+  const pitchingTrends = {};
+  HITTING_KEYS.forEach(k=> hittingTrends[k] = trendArrow(snap.team[k], prev ? prev.team[k] : null, k));
+  PITCHING_KEYS.forEach(k=> pitchingTrends[k] = trendArrow(snap.team[k], prev ? prev.team[k] : null, k));
+
+  document.getElementById('seasonHittingTrendNote').textContent =
+    prev ? `vs. snapshot from ${formatDate(prev.date)}` : '(first snapshot — no prior data to compare)';
+
+  renderStatCards(document.getElementById('seasonHittingCards'), snap.team, HITTING_KEYS, hittingTrends);
+  renderStatCards(document.getElementById('seasonPitchingCards'), snap.team, PITCHING_KEYS, pitchingTrends);
+  renderSeasonTable(snap.players, document.getElementById('seasonPlayerSearch').value);
+}
+
+function initSeason(){
+  const snaps = getEraSnapshots();
+  if(snaps.length===0){
+    document.getElementById('seasonEmpty').style.display = 'block';
+    document.getElementById('seasonContent').style.display = 'none';
+    return;
+  }
+  document.getElementById('seasonEmpty').style.display = 'none';
+  document.getElementById('seasonContent').style.display = 'block';
+
+  const select = document.getElementById('seasonSelect');
+  const sorted = snaps.slice().sort((a,b)=> b.date.localeCompare(a.date));
+  select.innerHTML = sorted.map(s=>`<option value="${s.date}">${formatDate(s.date)}</option>`).join('');
+  select.onchange = renderSeasonView;
+  document.getElementById('seasonPlayerSearch').oninput = ()=>{
+    renderSeasonTable(getCurrentSeasonSnapshot().players, document.getElementById('seasonPlayerSearch').value);
+  };
+  renderSeasonView();
+}
+
+/* =========================================================
+   TRENDS VIEW
+   ========================================================= */
+
+function renderTrendGrid(){
+  const group = document.getElementById('trendGroupSelect').value;
+  const keys = group==='hitting' ? HITTING_KEYS : PITCHING_KEYS;
+  const grid = document.getElementById('trendGrid');
+
+  // Tear down any existing charts before rebuilding the grid
+  Object.values(trendCharts).forEach(c=>c.destroy());
+  trendCharts = {};
+
+  const sorted = getEraSnapshots().sort((a,b)=>a.date.localeCompare(b.date));
+  const labels = sorted.map(s=>formatDate(s.date));
+
+  grid.innerHTML = keys.map(key=>{
+    const cfg = METRIC_CONFIG[key];
+    const latest = sorted.length ? sorted[sorted.length-1].team[key] : null;
+    return `
+      <div class="trend-card">
+        <div class="trend-card-title">
+          <span>${cfg.label}</span>
+          <span class="latest">${fmtValue(latest, cfg.fmt)}</span>
+        </div>
+        <div class="trend-card-canvas-wrap">
+          <canvas id="trendCanvas-${key.replace('%','pct').replace('/','-')}"></canvas>
+        </div>
+      </div>`;
+  }).join('');
+
+  keys.forEach(key=>{
+    const cfg = METRIC_CONFIG[key];
+    const canvasId = `trendCanvas-${key.replace('%','pct').replace('/','-')}`;
+    const values = sorted.map(s=> s.team[key]===undefined ? null : s.team[key]);
+    const ctx = document.getElementById(canvasId).getContext('2d');
+
+    trendCharts[key] = new Chart(ctx, {
+      type:'line',
+      data:{
+        labels,
+        datasets:[{
+          label:cfg.label,
+          data:values,
+          borderColor:'#0F2F24',
+          backgroundColor:'rgba(191,191,191,0.28)',
+          pointBackgroundColor:'#BFBFBF',
+          pointBorderColor:'#0F2F24',
+          pointRadius:4,
+          pointHoverRadius:6,
+          borderWidth:2.25,
+          fill:true,
+          tension:0.25,
+        },{
+          label:'Goal',
+          data:labels.map(()=>cfg.goal),
+          borderColor:'#000000',
+          borderDash:[6,4],
+          borderWidth:1.25,
+          pointRadius:0,
+          fill:false,
+        },{
+          label:'Stretch',
+          data:labels.map(()=>cfg.stretch),
+          borderColor:'#2E9E4C',
+          borderDash:[6,4],
+          borderWidth:1.25,
+          pointRadius:0,
+          fill:false,
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false },
+          tooltip:{
+            callbacks:{
+              label: (item)=> `${item.dataset.label}: ${fmtValue(item.parsed.y, cfg.fmt)}`
+            }
+          }
+        },
+        scales:{
+          y:{ ticks:{ font:{ family:'Roboto Mono', size:10 } } },
+          x:{ ticks:{ font:{ family:'Inter', size:10 }, maxRotation:0, autoSkip:true } }
+        }
+      }
+    });
+  });
+}
+
+function initTrends(){
+  const snaps = getEraSnapshots();
+  if(snaps.length===0){
+    document.getElementById('trendsEmpty').style.display = 'block';
+    document.getElementById('trendsContent').style.display = 'none';
+    return;
+  }
+  document.getElementById('trendsEmpty').style.display = 'none';
+  document.getElementById('trendsContent').style.display = 'block';
+  document.getElementById('trendGroupSelect').onchange = renderTrendGrid;
+  // Charts are only rendered when the Trends tab is actually open/visible —
+  // Chart.js can't size a canvas correctly while its container is display:none.
+  // See the nav.tabs click handler for the lazy first-render, and re-render
+  // here too in case we're already on this tab (e.g. switching eras).
+  if(document.getElementById('trends').classList.contains('active')){
+    renderTrendGrid();
+  }
+}
+
+function initTournamentTab(){
+  const tourns = getEraTournaments();
+  document.getElementById('tournCount').textContent = tourns.length;
+
+  if(tourns.length === 0){
+    document.getElementById('tournamentEmpty').style.display = 'block';
+    document.getElementById('tournamentContent').style.display = 'none';
+    return;
+  }
+  document.getElementById('tournamentEmpty').style.display = 'none';
+  document.getElementById('tournamentContent').style.display = 'block';
+
+  const select = document.getElementById('tournSelect');
+  const sorted = tourns.slice().sort((a,b)=> b.date.localeCompare(a.date));
+  select.innerHTML = sorted.map(t=>`<option value="${t.id}">${formatDate(t.date)} — ${t.name}</option>`).join('');
+  select.onchange = renderTournamentView;
+  document.getElementById('playerSearch').oninput = ()=>{
+    renderTournamentTable(getCurrentTournament().players, document.getElementById('playerSearch').value);
+  };
+  renderTournamentView();
+}
+
+// Tab switching
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.view).classList.add('active');
+    if(btn.dataset.view === 'trends' && getEraSnapshots().length > 0){
+      renderTrendGrid();
+    }
+  });
+});
+
+Promise.all([
+  fetch('data/tournaments.json').then(r=>r.json()),
+  fetch('data/season.json').then(r=>r.json()).catch(()=>({snapshots:[],eras:[]}))
+]).then(([tournJson, seasonJson])=>{
+  DATA = tournJson;
+  SEASON = seasonJson;
+  initEraSelector();
+  refreshAllViews();
+}).catch(err=>{
+  document.getElementById('tournTable').outerHTML =
+    `<div class="empty-state"><span class="bolt">⚡</span><h3>Couldn't load tournament data</h3>
+     <p>Make sure the <code>data/</code> folder is in the same place as this file, and that you're viewing this through a local server or the live site (not opened directly as a file).</p></div>`;
+  console.error(err);
+});
+</script>
+
+</body>
+</html>
