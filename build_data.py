@@ -22,6 +22,13 @@ FOLDER STRUCTURE (each era gets its own subfolder, name must match exactly):
         12U Fall 2026/
         12U Spring 2027/
 
+    data/raw_games/
+        11U Spring 2026/
+            Games.xlsx   (one row per game: Date, Tournament, Location,
+                           Home, Home Runs, Away, Away Score, W-L, Record)
+        12U Fall 2026/
+        12U Spring 2027/
+
 USAGE:
     python3 build_data.py
 
@@ -48,6 +55,8 @@ OUT_FILE = os.path.join("data", "tournaments.json")
 
 SEASON_RAW_DIR = os.path.join("data", "raw_season")
 SEASON_OUT_FILE = os.path.join("data", "season.json")
+
+GAMES_RAW_DIR = os.path.join("data", "raw_games")
 
 FNAME_RE = re.compile(r"Tournament[ _]Stats[ _]-[ _](\d{4}-\d{2}-\d{2})[ _](.+)\.csv$", re.IGNORECASE)
 SEASON_FNAME_RE = re.compile(r"Season[ _]-[ _](\d{4}-\d{2}-\d{2})\.csv$", re.IGNORECASE)
@@ -132,6 +141,83 @@ def parse_gamechanger_csv(path):
     return team, players
 
 
+def parse_games_file(path):
+    """Reads a Games.xlsx export: one row per game played, with a running
+    W-L record. We don't trust the 'Tournament' column name to match the
+    stats CSV filenames exactly (e.g. 'PAC Mudbug Classic NIT' vs
+    'PAC Mudbug Classic') — instead we match games to tournaments purely
+    by date in assign_games_to_tournaments() below."""
+    df = pd.read_excel(path, header=1)
+    df.columns = [str(c).strip() for c in df.columns]
+
+    games = []
+    for _, row in df.iterrows():
+        date_val = row.get("Date")
+        if pd.isna(date_val):
+            continue
+        date_str = pd.to_datetime(date_val).strftime("%Y-%m-%d")
+
+        home = str(row.get("Home", "")).strip()
+        away = str(row.get("Away", "")).strip()
+        home_runs = row.get("Home Runs")
+        away_score = row.get("Away Score")
+
+        # Figure out which side is FTW Thunder so we can normalize to
+        # ftw_score / opp_score / opponent regardless of home/away.
+        if "FTW" in home.upper():
+            ftw_score = clean_num(home_runs)
+            opp_score = clean_num(away_score)
+            opponent = away
+        else:
+            ftw_score = clean_num(away_score)
+            opp_score = clean_num(home_runs)
+            opponent = home
+
+        result = str(row.get("W-L", "")).strip().upper()
+        record_col = "Record\n" if "Record\n" in df.columns else "Record"
+        record = str(row.get(record_col, "")).strip()
+
+        games.append({
+            "date": date_str,
+            "opponent": opponent,
+            "location": str(row.get("Location", "")).strip(),
+            "ftw_score": ftw_score,
+            "opp_score": opp_score,
+            "result": result,
+            "record": record,
+        })
+
+    games.sort(key=lambda g: g["date"])
+    return games
+
+
+def assign_games_to_tournaments(era_tournaments, games):
+    """Matches each game to the tournament with the latest start date that
+    is still <= the game's date (handles multi-day tournaments, and doesn't
+    depend on the game file's tournament name matching the stats filename)."""
+    sorted_tournaments = sorted(era_tournaments, key=lambda t: t["date"])
+    for t in sorted_tournaments:
+        t["games"] = []
+
+    for g in games:
+        candidate = None
+        for t in sorted_tournaments:
+            if t["date"] <= g["date"]:
+                candidate = t
+            else:
+                break
+        if candidate is not None:
+            candidate["games"].append(g)
+        else:
+            print(f"⚠️  Game on {g['date']} vs {g['opponent']} is before any tournament start date — skipped")
+
+    for t in sorted_tournaments:
+        wins = sum(1 for g in t["games"] if g["result"] == "W")
+        losses = sum(1 for g in t["games"] if g["result"] == "L")
+        t["tournament_record"] = f"{wins}-{losses}"
+        t["season_record_after"] = t["games"][-1]["record"] if t["games"] else None
+
+
 def build_tournaments():
     tournaments = []
 
@@ -141,6 +227,7 @@ def build_tournaments():
             print(f"ℹ️  No folder yet for era '{era}' — skipping ({era_dir})")
             continue
 
+        era_tournaments = []
         files = sorted(glob.glob(os.path.join(era_dir, "*.csv")))
         for path in files:
             fname = os.path.basename(path)
@@ -152,7 +239,7 @@ def build_tournaments():
             name = re.sub(r"_+", " ", raw_name).strip()
             try:
                 team, players = parse_gamechanger_csv(path)
-                tournaments.append({
+                era_tournaments.append({
                     "id": f"{date}-{re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')}",
                     "date": date,
                     "name": name,
@@ -163,6 +250,23 @@ def build_tournaments():
                 print(f"✅ Parsed tournament [{era}]: {name} ({date}) — {len(players)} players")
             except Exception as e:
                 print(f"❌ Error parsing {era}/{fname}: {e}")
+
+        # Attach games (if a Games.xlsx exists for this era)
+        games_dir = os.path.join(GAMES_RAW_DIR, era)
+        if os.path.isdir(games_dir):
+            game_files = sorted(glob.glob(os.path.join(games_dir, "*.xlsx")))
+            all_games = []
+            for gpath in game_files:
+                try:
+                    parsed = parse_games_file(gpath)
+                    all_games.extend(parsed)
+                    print(f"✅ Parsed games [{era}]: {os.path.basename(gpath)} — {len(parsed)} games")
+                except Exception as e:
+                    print(f"❌ Error parsing games file {era}/{os.path.basename(gpath)}: {e}")
+            if all_games:
+                assign_games_to_tournaments(era_tournaments, all_games)
+
+        tournaments.extend(era_tournaments)
 
     tournaments.sort(key=lambda t: (t["era"], t["date"]))
 
