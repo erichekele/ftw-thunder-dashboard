@@ -579,6 +579,13 @@
       <p>As more weekly Season snapshots are added, this tab will chart the team's progress across the whole season, metric by metric.</p>
     </div>
     <div id="trendsContent">
+      <div class="section-label"><span class="bolt">⚡</span><h2>Season Record by Tournament</h2><div class="line"></div></div>
+      <div id="recordChartWrap" class="trend-card" style="margin-bottom:24px;">
+        <div class="trend-card-canvas-wrap" style="height:260px;">
+          <canvas id="recordChart"></canvas>
+        </div>
+      </div>
+
       <div class="toolbar">
         <div class="select-wrap">
           <label for="trendGroupSelect">Metric Group</label>
@@ -642,6 +649,7 @@ let SEASON = { snapshots: [] };
 let currentSort = { key:'name', dir:1 };
 let seasonSort = { key:'name', dir:1 };
 let trendCharts = {};
+let recordChart = null;
 let currentEra = null;
 
 const NEGATIVE_METRICS = ['K-L%','BBS%']; // lower is better
@@ -971,6 +979,77 @@ function initSeason(){
    TRENDS VIEW
    ========================================================= */
 
+function renderRecordChart(){
+  const container = document.getElementById('recordChartWrap');
+  const tourns = getEraTournaments().slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const withRecord = tourns.filter(t=>t.season_record_after);
+
+  try{ if(recordChart) recordChart.destroy(); }catch(e){}
+
+  if(withRecord.length === 0){
+    container.innerHTML = `<p style="color:var(--ink-soft);font-size:14px;margin:0;">No game/record data available yet for this season.</p>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="trend-card-canvas-wrap" style="height:260px;"><canvas id="recordChart"></canvas></div>`;
+
+  const labels = withRecord.map(t=>t.name);
+  const wins = [], losses = [];
+  withRecord.forEach(t=>{
+    const parts = t.season_record_after.split('-').map(Number);
+    wins.push(parts[0]);
+    losses.push(parts[1]);
+  });
+
+  const ctx = document.getElementById('recordChart').getContext('2d');
+  recordChart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {
+          label:'Wins',
+          data:wins,
+          borderColor:'#2E9E4C',
+          backgroundColor:'rgba(46,158,76,0.10)',
+          pointBackgroundColor:'#2E9E4C',
+          pointBorderColor:'#0F2F24',
+          pointRadius:4,
+          pointHoverRadius:6,
+          borderWidth:2.5,
+          fill:false,
+          tension:0.2,
+        },
+        {
+          label:'Losses',
+          data:losses,
+          borderColor:'#C0392B',
+          backgroundColor:'rgba(192,57,43,0.10)',
+          pointBackgroundColor:'#C0392B',
+          pointBorderColor:'#0F2F24',
+          pointRadius:4,
+          pointHoverRadius:6,
+          borderWidth:2.5,
+          fill:false,
+          tension:0.2,
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:true, position:'top', labels:{ font:{ family:'Inter' }, boxWidth:14 } },
+        tooltip:{ mode:'index', intersect:false }
+      },
+      scales:{
+        y:{ beginAtZero:true, ticks:{ font:{ family:'Roboto Mono', size:10 }, precision:0 } },
+        x:{ ticks:{ font:{ family:'Inter', size:10 }, maxRotation:20, autoSkip:false } }
+      }
+    }
+  });
+}
+
 function renderTrendGrid(){
   const group = document.getElementById('trendGroupSelect').value;
   const keys = group==='hitting' ? HITTING_KEYS : PITCHING_KEYS;
@@ -1094,6 +1173,7 @@ function initTrends(){
   // See the nav.tabs click handler for the lazy first-render, and re-render
   // here too in case we're already on this tab (e.g. switching eras).
   if(document.getElementById('trends').classList.contains('active')){
+    renderRecordChart();
     renderTrendGrid();
   }
 }
@@ -1128,6 +1208,7 @@ document.querySelectorAll('nav.tabs button').forEach(btn=>{
     btn.classList.add('active');
     document.getElementById(btn.dataset.view).classList.add('active');
     if(btn.dataset.view === 'trends' && getEraSnapshots().length > 0){
+      renderRecordChart();
       renderTrendGrid();
     }
   });
