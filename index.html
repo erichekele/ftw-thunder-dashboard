@@ -553,6 +553,8 @@
         </div>
       </div>
 
+      <div id="seasonRecordBadge" class="record-summary"></div>
+
       <div class="section-label"><span class="bolt">⚡</span><h2>Team Hitting <span id="seasonHittingTrendNote" style="text-transform:none;font-weight:400;color:var(--ink-soft);font-size:12px;"></span></h2><div class="line"></div></div>
       <div class="cardgrid" id="seasonHittingCards"></div>
 
@@ -934,6 +936,11 @@ function renderSeasonView(){
 
   document.getElementById('seasonHittingTrendNote').textContent =
     prev ? `vs. snapshot from ${formatDate(prev.date)}` : '(first snapshot — no prior data to compare)';
+
+  const badge = document.getElementById('seasonRecordBadge');
+  badge.innerHTML = snap.record
+    ? `<div class="record-badge"><div class="rb-label">Record as of ${formatDate(snap.date)}</div><div class="rb-val">${snap.record}</div></div>`
+    : '';
 
   renderStatCards(document.getElementById('seasonHittingCards'), snap.team, HITTING_KEYS, hittingTrends);
   renderStatCards(document.getElementById('seasonPitchingCards'), snap.team, PITCHING_KEYS, pitchingTrends);

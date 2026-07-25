@@ -193,6 +193,47 @@ def parse_games_file(path):
     return games
 
 
+_era_games_cache = {}
+
+def load_era_games(era):
+    """Parses every Games.xlsx file for an era into one sorted, flat list.
+    Shared by build_tournaments() (to attach games per-tournament) and
+    build_season() (to attach the overall record as of each weekly snapshot).
+    Cached per era so we don't re-parse the same file twice in one run."""
+    if era in _era_games_cache:
+        return _era_games_cache[era]
+
+    games_dir = os.path.join(GAMES_RAW_DIR, era)
+    if not os.path.isdir(games_dir):
+        _era_games_cache[era] = []
+        return []
+
+    all_games = []
+    for gpath in sorted(glob.glob(os.path.join(games_dir, "*.xlsx"))):
+        try:
+            parsed = parse_games_file(gpath)
+            all_games.extend(parsed)
+            print(f"✅ Parsed games [{era}]: {os.path.basename(gpath)} — {len(parsed)} games")
+        except Exception as e:
+            print(f"❌ Error parsing games file {era}/{os.path.basename(gpath)}: {e}")
+
+    all_games.sort(key=lambda g: g["date"])
+    _era_games_cache[era] = all_games
+    return all_games
+
+
+def record_as_of(games, as_of_date):
+    """Returns the team's cumulative W-L record from the last game played
+    on or before as_of_date, or None if no games happened by then yet."""
+    candidate = None
+    for g in games:
+        if g["date"] <= as_of_date:
+            candidate = g
+        else:
+            break
+    return candidate["record"] if candidate else None
+
+
 def assign_games_to_tournaments(era_tournaments, games):
     """Matches each game to the tournament with the latest start date that
     is still <= the game's date (handles multi-day tournaments, and doesn't
@@ -254,19 +295,9 @@ def build_tournaments():
                 print(f"❌ Error parsing {era}/{fname}: {e}")
 
         # Attach games (if a Games.xlsx exists for this era)
-        games_dir = os.path.join(GAMES_RAW_DIR, era)
-        if os.path.isdir(games_dir):
-            game_files = sorted(glob.glob(os.path.join(games_dir, "*.xlsx")))
-            all_games = []
-            for gpath in game_files:
-                try:
-                    parsed = parse_games_file(gpath)
-                    all_games.extend(parsed)
-                    print(f"✅ Parsed games [{era}]: {os.path.basename(gpath)} — {len(parsed)} games")
-                except Exception as e:
-                    print(f"❌ Error parsing games file {era}/{os.path.basename(gpath)}: {e}")
-            if all_games:
-                assign_games_to_tournaments(era_tournaments, all_games)
+        all_games = load_era_games(era)
+        if all_games:
+            assign_games_to_tournaments(era_tournaments, all_games)
 
         tournaments.extend(era_tournaments)
 
@@ -302,6 +333,12 @@ def build_season():
                 print(f"✅ Parsed season snapshot [{era}]: {date} — {len(players)} players")
             except Exception as e:
                 print(f"❌ Error parsing {era}/{fname}: {e}")
+
+        era_games = load_era_games(era)
+        if era_games:
+            for s in snapshots:
+                if s["era"] == era:
+                    s["record"] = record_as_of(era_games, s["date"])
 
     snapshots.sort(key=lambda s: (s["era"], s["date"]))
 
