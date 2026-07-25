@@ -1004,6 +1004,25 @@ function renderTrendGrid(){
     const values = sorted.map(s=> s.team[key]===undefined ? null : s.team[key]);
     const ctx = document.getElementById(canvasId).getContext('2d');
 
+    // Draws the value just above each data point on the main line only
+    // (not the dashed Goal/Stretch reference lines, to keep those clean).
+    const pointLabelPlugin = {
+      id: `pointLabels-${key}`,
+      afterDatasetsDraw(chart){
+        const meta = chart.getDatasetMeta(0);
+        chart.ctx.save();
+        chart.ctx.font = "600 10px 'Roboto Mono', monospace";
+        chart.ctx.fillStyle = '#0F2F24';
+        chart.ctx.textAlign = 'center';
+        meta.data.forEach((point, idx)=>{
+          const v = values[idx];
+          if(v===null || v===undefined) return;
+          chart.ctx.fillText(fmtValue(v, cfg.fmt), point.x, point.y - 10);
+        });
+        chart.ctx.restore();
+      }
+    };
+
     trendCharts[key] = new Chart(ctx, {
       type:'line',
       data:{
@@ -1038,9 +1057,11 @@ function renderTrendGrid(){
           fill:false,
         }]
       },
+      plugins:[pointLabelPlugin],
       options:{
         responsive:true,
         maintainAspectRatio:false,
+        layout:{ padding:{ top:16 } },
         plugins:{
           legend:{ display:false },
           tooltip:{
