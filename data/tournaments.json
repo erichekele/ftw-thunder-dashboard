@@ -339,6 +339,7 @@
       "games": [
         {
           "date": "2026-02-28",
+          "type": "Pool",
           "opponent": "Cooperstown Cobras VanSlyke 11U",
           "location": "Euless",
           "ftw_score": 10.0,
@@ -348,6 +349,7 @@
         },
         {
           "date": "2026-02-28",
+          "type": "Pool",
           "opponent": "NTX Peagles 11U",
           "location": "Euless",
           "ftw_score": 0.0,
@@ -357,6 +359,7 @@
         },
         {
           "date": "2026-03-01",
+          "type": "Bracket",
           "opponent": "TBE Munoz 11U",
           "location": "Euless",
           "ftw_score": 9.0,
@@ -702,6 +705,7 @@
       "games": [
         {
           "date": "2026-03-21",
+          "type": "Pool",
           "opponent": "Texas Blacksox Berrones 11U",
           "location": "Glen Rose",
           "ftw_score": 15.0,
@@ -711,6 +715,7 @@
         },
         {
           "date": "2026-03-21",
+          "type": "Pool",
           "opponent": "BTX Patriots 11U",
           "location": "Glen Rose",
           "ftw_score": 8.0,
@@ -720,6 +725,7 @@
         },
         {
           "date": "2026-03-22",
+          "type": "Pool",
           "opponent": "Flex Select",
           "location": "Glen Rose",
           "ftw_score": 8.0,
@@ -729,6 +735,7 @@
         },
         {
           "date": "2026-03-22",
+          "type": "Bracket",
           "opponent": "BTX Patriots 11U",
           "location": "Glen Rose",
           "ftw_score": 3.0,
@@ -738,6 +745,7 @@
         },
         {
           "date": "2026-03-22",
+          "type": "Bracket",
           "opponent": "Texas Blacksox Berrones 11U",
           "location": "Glen Rose",
           "ftw_score": 1.0,
@@ -1058,6 +1066,7 @@
       "games": [
         {
           "date": "2026-03-28",
+          "type": "Pool",
           "opponent": "Barrett Rams 10U",
           "location": "Stephenville",
           "ftw_score": 13.0,
@@ -1067,6 +1076,7 @@
         },
         {
           "date": "2026-03-28",
+          "type": "Pool",
           "opponent": "Comanche Indians",
           "location": "Stephenville",
           "ftw_score": 15.0,
@@ -1076,6 +1086,7 @@
         },
         {
           "date": "2026-03-29",
+          "type": "Bracket",
           "opponent": "BTX Patriots 11U",
           "location": "Stephenville",
           "ftw_score": 7.0,
@@ -1085,6 +1096,7 @@
         },
         {
           "date": "2026-03-29",
+          "type": "Bracket",
           "opponent": "Stephenville Sox Brown 11U",
           "location": "Stephenville",
           "ftw_score": 9.0,
@@ -1430,6 +1442,7 @@
       "games": [
         {
           "date": "2026-04-11",
+          "type": "Pool",
           "opponent": "Dodgers 11U",
           "location": "Denton",
           "ftw_score": 15.0,
@@ -1439,6 +1452,7 @@
         },
         {
           "date": "2026-04-11",
+          "type": "Pool",
           "opponent": "USA Prime 11U",
           "location": "Denton",
           "ftw_score": 4.0,
@@ -1784,6 +1798,7 @@
       "games": [
         {
           "date": "2026-04-24",
+          "type": "Pool",
           "opponent": "Dallas Nationals Daves 11U",
           "location": "Graford",
           "ftw_score": 1.0,
@@ -1793,6 +1808,7 @@
         },
         {
           "date": "2026-04-24",
+          "type": "Pool",
           "opponent": "Savage Prime Baseball Escobedo 11U",
           "location": "Graford",
           "ftw_score": 3.0,
@@ -1802,6 +1818,7 @@
         },
         {
           "date": "2026-04-26",
+          "type": "Bracket",
           "opponent": "NTX YoungGuns 11U",
           "location": "Graford",
           "ftw_score": 1.0,
@@ -2147,6 +2164,7 @@
       "games": [
         {
           "date": "2026-05-02",
+          "type": "Pool",
           "opponent": "NTXBC Dirtbags Moreland 11U",
           "location": "Denton",
           "ftw_score": 1.0,
@@ -2156,6 +2174,7 @@
         },
         {
           "date": "2026-05-02",
+          "type": "Pool",
           "opponent": "Dallas Nationals Moore 10U",
           "location": "Denton",
           "ftw_score": 5.0,
@@ -2165,6 +2184,7 @@
         },
         {
           "date": "2026-05-03",
+          "type": "Bracket",
           "opponent": "The Pack Baseball Club Carrier 11U",
           "location": "Denton",
           "ftw_score": 13.0,
@@ -2510,6 +2530,7 @@
       "games": [
         {
           "date": "2026-05-16",
+          "type": "Pool",
           "opponent": "Dulins Dodgers Houston 11U",
           "location": "Euless",
           "ftw_score": 4.0,
@@ -2519,6 +2540,7 @@
         },
         {
           "date": "2026-05-16",
+          "type": "Pool",
           "opponent": "Stix Northwest 11U Black",
           "location": "Euless",
           "ftw_score": 3.0,
@@ -2528,6 +2550,7 @@
         },
         {
           "date": "2026-05-17",
+          "type": "Bracket",
           "opponent": "HV Storm 11U",
           "location": "Euless",
           "ftw_score": 0.0,
@@ -2873,6 +2896,7 @@
       "games": [
         {
           "date": "2026-05-23",
+          "type": "Pool",
           "opponent": "FWT Aces 11U Thomas",
           "location": "Euless",
           "ftw_score": 5.0,
@@ -2882,6 +2906,7 @@
         },
         {
           "date": "2026-05-23",
+          "type": "Pool",
           "opponent": "Texas Sandlot Copenhaver 11U",
           "location": "Euless",
           "ftw_score": 9.0,
@@ -2891,6 +2916,7 @@
         },
         {
           "date": "2026-05-24",
+          "type": "Bracket",
           "opponent": "Texas Sandlot Copenhaver 11U",
           "location": "Euless",
           "ftw_score": 12.0,
@@ -2900,6 +2926,7 @@
         },
         {
           "date": "2026-05-24",
+          "type": "Bracket",
           "opponent": "Midland Southwest Bulls Navy 11U",
           "location": "Euless",
           "ftw_score": 0.0,
@@ -3245,6 +3272,7 @@
       "games": [
         {
           "date": "2026-06-06",
+          "type": "Pool",
           "opponent": "Richland Hawks 11U",
           "location": "Lancaster",
           "ftw_score": 9.0,
@@ -3254,6 +3282,7 @@
         },
         {
           "date": "2026-06-06",
+          "type": "Pool",
           "opponent": "Dragon Select Lasater 11U",
           "location": "Lancaster",
           "ftw_score": 6.0,
@@ -3263,6 +3292,7 @@
         },
         {
           "date": "2026-06-07",
+          "type": "Bracket",
           "opponent": "TC Bandits Doyle Wall 11U",
           "location": "Lancaster",
           "ftw_score": 17.0,
@@ -3272,6 +3302,7 @@
         },
         {
           "date": "2026-06-07",
+          "type": "Bracket",
           "opponent": "Dragon Select Lasater 11U",
           "location": "Lancaster",
           "ftw_score": 2.0,
@@ -3667,6 +3698,7 @@
       "games": [
         {
           "date": "2026-06-20",
+          "type": "Pool",
           "opponent": "Frisco Braves 11U",
           "location": "Grapevine",
           "ftw_score": 10.0,
@@ -3676,6 +3708,7 @@
         },
         {
           "date": "2026-06-20",
+          "type": "Pool",
           "opponent": "DBC Elite 11U",
           "location": "Grapevine",
           "ftw_score": 0.0,
@@ -3685,6 +3718,7 @@
         },
         {
           "date": "2026-06-22",
+          "type": "Pool",
           "opponent": "Texas Damage Sotello 11U",
           "location": "Grapevine",
           "ftw_score": 6.0,
@@ -3694,6 +3728,7 @@
         },
         {
           "date": "2026-06-22",
+          "type": "Pool",
           "opponent": "Hitters Row Raiders 11U",
           "location": "Grapevine",
           "ftw_score": 3.0,
@@ -3703,6 +3738,7 @@
         },
         {
           "date": "2026-06-23",
+          "type": "Bracket",
           "opponent": "Texas Oilers 11U",
           "location": "Grapevine",
           "ftw_score": 21.0,
@@ -3712,6 +3748,7 @@
         },
         {
           "date": "2026-06-23",
+          "type": "Bracket",
           "opponent": "Colleyville Stars Carroll 11U",
           "location": "Grapevine",
           "ftw_score": 5.0,

@@ -176,9 +176,11 @@ def parse_games_file(path):
         result = str(row.get("W-L", "")).strip().upper()
         record_col = "Record\n" if "Record\n" in df.columns else "Record"
         record = str(row.get(record_col, "")).strip()
+        game_type = str(row.get("Type", "")).strip()
 
         games.append({
             "date": date_str,
+            "type": game_type,
             "opponent": opponent,
             "location": str(row.get("Location", "")).strip(),
             "ftw_score": ftw_score,

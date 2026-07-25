@@ -834,9 +834,8 @@ function renderGamesSection(t){
       ? `${fmtValue(g.ftw_score,'int')} - ${fmtValue(g.opp_score,'int')}`
       : '—';
     return `<tr>
-      <td>${formatDate(g.date)}</td>
+      <td>${g.type || '—'}</td>
       <td style="font-family:'Inter',sans-serif;">${g.opponent}</td>
-      <td>${g.location || '—'}</td>
       <td>${scoreText}</td>
       <td><span class="result-pill ${g.result}">${g.result}</span></td>
       <td>${g.record || '—'}</td>
@@ -846,7 +845,7 @@ function renderGamesSection(t){
   container.innerHTML = badges + `
     <div class="games-table-wrap">
       <table class="games-table">
-        <thead><tr><th>Date</th><th>Opponent</th><th>Location</th><th>Score</th><th>W/L</th><th>Record</th></tr></thead>
+        <thead><tr><th>Type</th><th>Opponent</th><th>Score</th><th>W/L</th><th>Record</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
